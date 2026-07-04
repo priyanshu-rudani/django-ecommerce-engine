@@ -1,0 +1,13 @@
+[project]
+name = "backend"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "boto3>=1.43.40",
+    "django>=6.0.6",
+    "django-storages>=1.14.6",
+    "dotenv>=0.9.9",
+    "psycopg2>=2.9.12",
+]

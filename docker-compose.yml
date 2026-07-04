@@ -1,0 +1,47 @@
+version: "3.8"
+
+services:
+  # 1. Your Existing PostgreSQL Database (For Core MVP Data)
+  database:
+    image: postgres:15
+    container_name: ecommerce_postgres
+    restart: always
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      # Maps the database files to your specific workspace
+      # The entire string is wrapped in quotes to safely handle spaces
+      - "${STORAGES_PATH}/database:/var/lib/postgresql/data"
+    ports:
+      - "5432:5432"
+    networks:
+      - ecommerce_network
+
+  # 2. Your New MinIO Object Storage (For Images & Media)
+  object_storage:
+    image: minio/minio:latest
+    container_name: ecommerce_minio
+    restart: always
+    environment:
+      # These act as your AWS Access Key and Secret Key
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    # Starts the server and assigns a specific port for the Admin UI
+    command: server /data --console-address ":9001"
+    volumes:
+      # Maps the physical image files to your workspace
+      - "${STORAGES_PATH}/media:/data"
+    ports:
+      # Port 9000: The API port (Your Django code talks to this one)
+      - "9000:9000"
+      # Port 9001: The Web UI (You open this in your browser to view uploaded images)
+      - "9001:9001"
+    networks:
+      - ecommerce_network
+
+# Creates a secure internal bridge network for the containers to talk to each other
+networks:
+  ecommerce_network:
+    driver: bridge
