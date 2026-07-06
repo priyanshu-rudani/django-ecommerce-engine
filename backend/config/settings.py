@@ -52,9 +52,9 @@ EXTERNAL_APPS = [
     'apps.core',
     'apps.identity',
     'apps.catalog',
+    'apps.coupons',
     'apps.inventory',
     'apps.checkout',
-    'apps.carts',
     'apps.dashboard',
 
 ]
