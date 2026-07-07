@@ -1,7 +1,5 @@
 from django.db import models
-
 from apps.core.models import BaseModel
-from apps.identity.models import user_profiles
 
 # Create your models here.
 class coupons(BaseModel):
@@ -34,6 +32,6 @@ class coupons(BaseModel):
 
 class coupon_redemptions(BaseModel):
     coupon_id = models.ForeignKey(coupons, on_delete=models.CASCADE, related_name='redemptions')
-    user_id = models.ForeignKey(user_profiles, on_delete=models.CASCADE, related_name='coupon_redemptions')
+    user_id = models.ForeignKey('identity.user_profiles', on_delete=models.CASCADE, related_name='coupon_redemptions')
     order_id = models.CharField(max_length=100, null=True, blank=True) 
     discount_retained = models.DecimalField(max_digits=10, decimal_places=2)

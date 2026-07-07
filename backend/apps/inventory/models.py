@@ -1,6 +1,12 @@
 from django.db import models
 from apps.core.models import BaseModel
-from apps.identity.models import user_profiles
+
+from datetime import timedelta
+from django.utils import timezone
+
+
+def reservation_expiry():
+    return timezone.now() + timedelta(minutes=10)
 
 
 # Create your models here.
@@ -37,21 +43,33 @@ class packages(BaseModel):
             ])
     
 
-# bug: Redesign these with AI inline suggestion: 
 
-class inventory_lock(BaseModel):
-    variant = models.ForeignKey('inventory.variants', on_delete=models.CASCADE, related_name='inventory_lock')
-    available_quantity = models.IntegerField(default=0)
-    reserved_quantity =  models.IntegerField(default=0)
-    low_stock_threshold = models.IntegerField(default=0)
-    expires_at = models.TimeField()
-    status = models.CharField(max_length=30, choices=[])
+class inventory(BaseModel):
+    variant = models.OneToOneField('catalog.product_variants', on_delete=models.CASCADE, related_name='inventory')
+    total_quantity = models.PositiveIntegerField(default=0)
+    reserved_quantity =  models.PositiveIntegerField(default=0)
+    low_stock_threshold = models.PositiveIntegerField(default=0)
+
+    @property
+    def available_quantity(self):
+        return self.total_quantity - self.reserved_quantity
 
 
-class inventory_items(BaseModel):
-    user_id = models.ForeignKey(user_profiles, on_delete=models.CASCADE, related_name='inventory_items')
-    # cart_id = models.ForeignKey('', on_delete=models.CASCADE, related_name='inventory_items')
-    # variant_id = models.ForeignKey('', on_delete=models.CASCADE, related_name='inventory_items')
-    quantity = models.IntegerField(default=0)
-    expires_at = models.TimeField()
-    status = models.CharField(max_length=30, choices=[])
+class inventory_reservation(BaseModel):
+    user_id = models.ForeignKey('identity.user_profiles', on_delete=models.SET_NULL, null=True, blank=True, related_name='inventory_reservation')
+    cart_id = models.ForeignKey('checkout.shopping_carts', on_delete=models.SET_NULL, null=True, blank=True,  related_name='inventory_reservation')
+    variant = models.ForeignKey('catalog.product_variants', on_delete=models.SET_NULL, null=True, blank=True,  related_name='inventory_reservation')
+    quantity = models.PositiveIntegerField(default=0)
+    expires_at = models.DateTimeField(default=reservation_expiry)
+    status = models.CharField(
+        max_length=30, 
+        choices=[
+            ('active', 'Active'),
+            ('confirmed', 'Confirmed'),
+            ('expired', 'Expired'),
+            ('cancelled', 'Cancelled'),
+        ],
+        default="active",
+    )
+
+

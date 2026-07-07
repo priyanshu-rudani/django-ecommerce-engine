@@ -1,13 +1,11 @@
 from django.db import models
 from apps.core.models import BaseModel
-from apps.identity.models import user_profiles
-from apps.catalog.models import product_variants
 
 # Create your models here.
 class shopping_carts(BaseModel):
     session_token = models.CharField(max_length=256, null=True, blank=True)
     user = models.ForeignKey(
-        user_profiles,
+        'identity.user_profiles',
         on_delete=models.CASCADE, 
         null=True, 
         blank=True, 
@@ -17,7 +15,7 @@ class shopping_carts(BaseModel):
 
 class shopping_carts_items(BaseModel):
     cart_id = models.ForeignKey(shopping_carts, on_delete=models.CASCADE, related_name="carts_items")
-    variant_id = models.ForeignKey(product_variants, on_delete=models.CASCADE)
+    variant_id = models.ForeignKey('catalog.product_variants', on_delete=models.CASCADE)
     quantity = models.IntegerField(default=0)
 
 
@@ -47,7 +45,7 @@ class orders(BaseModel):
             ('refunded', 'Refunded'),
         ]
     )
-    user_id = models.ForeignKey(user_profiles, on_delete=models.CASCADE)
+    user_id = models.ForeignKey('identity.user_profiles', on_delete=models.CASCADE)
     items_subtotal = models.DecimalField(max_digits=10, decimal_places=2)
     order_discount  = models.DecimalField(max_digits=10, decimal_places=2)
     is_international = models.BooleanField(default=False)
@@ -65,11 +63,11 @@ class orders(BaseModel):
 
 class order_items(BaseModel):
     order_id = models.ForeignKey(orders, on_delete=models.CASCADE, related_name='order_items')
-    variant_id = models.ForeignKey(product_variants, on_delete=models.CASCADE, related_name='order_items')
+    variant_id = models.ForeignKey('catalog.product_variants', on_delete=models.CASCADE, related_name='order_items')
     item_image_id = models.CharField(max_length=20)
     item_name = models.CharField(max_length=50)
     item_sku = models.CharField(max_length=20)
-    quantity = models.DecimalField(max_digits=10, decimal_places=2)
+    quantity = models.PositiveIntegerField(default=0)
     unit_price = models.DecimalField(max_digits=10, decimal_places=2)
     item_total = models.DecimalField(max_digits=10, decimal_places=2)
     hsn_code = models.CharField(max_length=15)
@@ -78,8 +76,8 @@ class order_items(BaseModel):
 
 
 class payment_transactions(BaseModel):
-    order_id = models.ForeignKey(orders, on_delete=models.SET_NULL)
-    user_id = models.ForeignKey(user_profiles, on_delete=models.CASCADE)
+    order_id = models.ForeignKey(orders, on_delete=models.SET_NULL, null=True)
+    user_id = models.ForeignKey('identity.user_profiles', on_delete=models.CASCADE)
     gateway_provider = models.CharField()
     gateway_transaction_id = models.CharField()
     amount = models.DecimalField(max_digits=10, decimal_places=2)

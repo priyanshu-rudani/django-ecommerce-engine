@@ -56,6 +56,7 @@ EXTERNAL_APPS = [
     'apps.inventory',
     'apps.checkout',
     'apps.dashboard',
+    'apps.rms',
 
 ]
 

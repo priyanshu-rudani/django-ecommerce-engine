@@ -1,8 +1,7 @@
 from django.db import models
 from autoslug import AutoSlugField
-from apps.identity.models import user_profiles
-from apps.inventory.models import packages
-from apps.core.models import BaseModel, media_assets
+from apps.core.models import BaseModel
+
 
 # Create your models here.
 class categories(BaseModel):
@@ -56,7 +55,7 @@ class product_variants(BaseModel):
             ('out_of_stock', 'Out of Stock'), 
             ('pre_order', 'Pre Order')
             ])
-    package_id = models.ForeignKey(packages, on_delete=models.CASCADE, null=True, blank=True, related_name='product_variants')
+    package_id = models.ForeignKey('inventory.packages', on_delete=models.CASCADE, null=True, blank=True, related_name='product_variants')
     is_active = models.BooleanField(default=True)
     attributes = models.JSONField(default=dict)
 
@@ -72,8 +71,8 @@ class product_variants(BaseModel):
     
 class product_images(BaseModel):
     product_id = models.ForeignKey(products, on_delete=models.CASCADE, related_name='images')
-    variant_id = models.ForeignKey(product_variants, on_delete=models.CASCADE, null=True, blank=True, related_name='images')
-    media_asset_id = models.ForeignKey(media_assets, on_delete=models.CASCADE, related_name='product_images')
+    variant_id = models.ForeignKey('catalog.product_variants', on_delete=models.CASCADE, null=True, blank=True, related_name='images')
+    media_asset_id = models.ForeignKey('core.media_assets', on_delete=models.CASCADE, related_name='product_images')
     is_primary = models.BooleanField(default=False)
     sort_order = models.PositiveIntegerField(default=0)
     is_primary = models.BooleanField(default=False)
@@ -105,11 +104,8 @@ class product_attributes(BaseModel):
 
 class product_reviews(BaseModel):
     product_id = models.ForeignKey(products, on_delete=models.CASCADE, related_name='reviews')
-    customer_id = models.ForeignKey(user_profiles, on_delete=models.CASCADE, related_name='reviews')
-
-    # todo: Add order_item_id to link the review to a specific order item
-    # order_item_id = models.ForeignKey('orders.order_items', on_delete=models.CASCADE, related_name='reviews')
-
+    customer_id = models.ForeignKey('identity.user_profiles', on_delete=models.CASCADE, related_name='reviews')
+    order_item_id = models.ForeignKey('checkout.order_items', on_delete=models.CASCADE, null=True, related_name='reviews')
     rating = models.PositiveIntegerField()
     review_text = models.TextField()
     is_approved = models.BooleanField(default=False)

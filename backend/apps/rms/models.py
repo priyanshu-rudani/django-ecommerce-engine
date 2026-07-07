@@ -1,14 +1,11 @@
 from django.db import models
 from apps.core.models import BaseModel
-from apps.inventory.models import user_profiles
-from apps.checkout.models import orders
-from apps.inventory.models import packages
 
 # Create your models here.
 class return_requests(BaseModel):
     return_number = models.CharField(max_length=20)
-    user_id = models.ForeignKey(user_profiles, on_delete=models.CASCADE)
-    order_id = models.ForeignKey(orders, on_delete=models.CASCADE)
+    user_id = models.ForeignKey('identity.user_profiles', on_delete=models.CASCADE)
+    order_id = models.ForeignKey('checkout.orders', on_delete=models.CASCADE)
     requested_method = models.CharField(
         max_length=50, 
         choices=[
@@ -53,16 +50,16 @@ class return_shipment(BaseModel):
     label_created_at  = models.DateField()
     shipment_status = models.CharField(max_length=50)
     return_charges = models.DecimalField(max_digits=10, decimal_places=2)
-    package_id = models.ForeignKey(packages, on_delete=models.SET_NULL, null=True, blank=True)
+    package_id = models.ForeignKey('inventory.packages', on_delete=models.SET_NULL, null=True, blank=True)
 
 
 class return_items(BaseModel):
     return_request_id = models.ForeignKey(return_requests, on_delete=models.CASCADE, related_name='items')
-    order_id = models.ForeignKey(orders, on_delete=models.CASCADE)
-    variant_id = models.ForeignKey(orders, on_delete=models.CASCADE)
-    item_quantity = models.IntegerField(max_length=10)
+    order_id = models.ForeignKey('checkout.orders', on_delete=models.CASCADE)
+    variant_id = models.ForeignKey('catalog.product_variants', on_delete=models.CASCADE)
+    item_quantity = models.PositiveIntegerField(default=0)
     item_condition = models.CharField(max_length=50)
-    customer_proof_images = models.FileField(upload_to='/returns/user_uploads/')
+    customer_proof_images = models.FileField(upload_to='returns/user_uploads/')
     serial_number = models.CharField(max_length=80, blank=True, null=True)
     is_inspected = models.BooleanField(default=False)
     restockable = models.BooleanField(default=True)

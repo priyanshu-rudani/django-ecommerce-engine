@@ -2,7 +2,7 @@ from django.db import models
 from apps.core.models import BaseModel
 
 
-# User Profiles Model 
+# Normal User Authentication Models
 class user_profiles(BaseModel):
     email = models.EmailField(unique=True)
     password_hash = models.CharField(max_length=256)
@@ -17,6 +17,7 @@ class user_profiles(BaseModel):
     gstin = models.CharField(max_length=15, blank=True, null=True)
     last_login_at = models.DateTimeField(blank=True, null=True)
     is_active = models.BooleanField(default=True)
+    is_deleted = models.BooleanField(default=False)
 
 
 
@@ -44,6 +45,7 @@ class user_address(BaseModel):
 class refresh_tokens(BaseModel):
     user = models.ForeignKey(user_profiles, on_delete=models.CASCADE, related_name='refresh_tokens')
     token_hash = models.CharField(max_length=255, unique=True)
+    previous_token_hash = models.CharField(max_length=255)
     device_info = models.CharField(max_length=255, blank=True, null=True)
     is_revoked = models.BooleanField(default=False)
     expires_at = models.DateTimeField()
@@ -53,12 +55,13 @@ class refresh_tokens(BaseModel):
 class user_otp_verifications(BaseModel):
     user = models.ForeignKey(user_profiles, on_delete=models.CASCADE, related_name='otp_verifications')
     identifier = models.CharField(max_length=255)  # This can be email or phone number
-    otp_hash = models.CharField(max_length=6)
+    otp_hash = models.CharField(max_length=10)
     purpose = models.CharField(
         max_length=50, 
         choices=[
             ('email_verification', 'Email Verification'), 
-            ('phone_verification', 'Phone Verification')
+            ('phone_verification', 'Phone Verification'),
+            ('password_reset', 'Password Reset')
         ])
     attempt_count = models.IntegerField(default=0)
     is_verified = models.BooleanField(default=False)
